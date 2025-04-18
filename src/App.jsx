@@ -1,3 +1,5 @@
+console.log("App.jsx is being loaded");
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -16,11 +18,12 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = () => {
   const { user } = useAuth();
-  
+  console.log("PublicRoute render:", { user, isAuthenticated: !!user });
   if (!user) {
+    console.log("PublicRoute redirecting to dashboard");
     return <Navigate to="/" replace />;
   }
-  
+  console.log("PublicRoute rendering login");
   return <Outlet />;
 };
 
@@ -29,6 +32,7 @@ const PublicRoute = () => {
   const { user } = useAuth();
   
   if (user) {
+    
     return <Navigate to="/dashboard" replace />;
   }
   

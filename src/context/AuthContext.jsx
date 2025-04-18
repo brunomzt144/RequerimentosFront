@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authService } from '../api';
-
+console.log("AuthContext.jsx is being loaded");
 // Set this to true to bypass authentication checks for testing
 const BYPASS_AUTH_FOR_TESTING = false; // Switch to false when ready for production
 
@@ -10,7 +10,9 @@ export const AuthProvider = ({ children }) => {
   // Initialize state based on localStorage or testing mode
   const [user, setUser] = useState(() => {
     if (BYPASS_AUTH_FOR_TESTING) {
+      console.log( "teste");
       return { name: "Test User" };
+  
     }
     
     // Check if we have a token and user data in localStorage
