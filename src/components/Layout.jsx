@@ -1,19 +1,20 @@
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-const Layout = ({ children, userName }) => {
-  const location = useLocation();
+const Layout = () => {
+  const { user } = useAuth();
+  const userName = user?.name || "Aluno";
   
-  // Don't show sidebar on login and register pages
-  const hideOnPaths = ['/', '/register'];
-  const showSidebar = !hideOnPaths.includes(location.pathname);
-
   return (
-    <div className="flex min-h-screen bg-background">
-      {showSidebar && <Sidebar userName={userName} />}
-      <div className="flex-1">
-        {children}
+    <div className="flex h-screen bg-background">
+      <Sidebar userName={userName} />
+      
+      <div className="flex-1 overflow-auto">
+        <main className="p-4 md:p-6">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

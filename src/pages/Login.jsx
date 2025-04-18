@@ -2,20 +2,30 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Lock } from 'lucide-react';
+import { AuthService } from '../api';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { login, loading, error } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username && password) {
-      const success = login({ name: username });
-      if (success) {
-        navigate('/dashboard');
-      }
+    
+    if (!username || !password) {
+      toast.error('Please enter both username and password');
+      return;
+    }
+
+    const success = await login(username, password);
+    
+    if (success) {
+      toast.success('Login successful!');
+      navigate('/dashboard');
+    } else {
+      // The error is already set in AuthContext
+      toast.error(error || 'Failed to login. Please try again.');
     }
   };
 
@@ -26,7 +36,6 @@ const Login = () => {
         <h1 className="text-center text-2xl font-bold mt-2">INSTITUTO FEDERAL</h1>
         <h2 className="text-center text-xl">Santa Catarina</h2>
       </div>
-      
       <div className="w-full max-w-md">
         <h2 className="text-center text-2xl font-semibold text-primary mb-6">Login</h2>
         

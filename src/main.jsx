@@ -1,10 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
 import './index.css'
+import App from './App.jsx'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)
+
+const root = document.getElementById('root');
+
+if (!root) {
+  console.error('Root element not found! Make sure there is a div with id="root" in your index.html');
+} else {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  )
+}
