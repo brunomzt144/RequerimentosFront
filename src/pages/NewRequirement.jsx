@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
+import { fetchFinalidade } from '../services/api';
 
 const NewRequirement = () => {
   const [formData, setFormData] = useState({
@@ -9,7 +10,29 @@ const NewRequirement = () => {
     files: [],
     agree: false
   });
+  
+  const [finalidades, setFinalidades] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const carregarFinalidades = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchFinalidade();
+        setFinalidades(data);
+      } catch (err) {
+        console.error('Erro ao carregar finalidades:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    carregarFinalidades();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -20,13 +43,11 @@ const NewRequirement = () => {
   };
 
   const handleFileUpload = (e) => {
-    // In a real app, you would handle file uploads to a server
     console.log('Files selected:', e.target.files);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // In a real app, you would send this data to your backend
     console.log('Form submitted:', formData);
     navigate('/dashboard');
   };
@@ -38,18 +59,25 @@ const NewRequirement = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium mb-1">Finalidade do requerimento</label>
-          <select
-            name="purpose"
-            className="w-full p-3 bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={formData.purpose}
-            onChange={handleChange}
-          >
-            <option value="">Selecione uma finalidade</option>
-            <option value="matricula">Matrícula</option>
-            <option value="transferencia">Transferência</option>
-            <option value="documentos">Solicitação de documentos</option>
-            <option value="outros">Outros</option>
-          </select>
+          {isLoading ? (
+            <p className="text-sm text-gray-500">Carregando finalidades</p>
+          ) : error ? (
+            <p className="text-sm text-red-500">Erro ao carregar finalidades: {error}</p>
+          ) : (
+            <select
+              name="purpose"
+              className="w-full p-3 bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              value={formData.purpose}
+              onChange={handleChange}
+            >
+              <option value="">Selecione uma finalidade</option>
+              {finalidades.map((finalidade) => (
+                <option key={finalidade.id} value={finalidade.id}>
+                  {finalidade.descricao}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         
         <div>

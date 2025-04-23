@@ -1,56 +1,127 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// Mock data - in a real app this would come from an API
-const requirementData = {
-  id: 1,
-  status: 'pending',
-  studentName: 'Nome do aluno',
-  purpose: 'Finalidade do requerimento',
-  justification: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
-  attachments: [
-    { id: 1, name: 'Anexo 1' },
-    { id: 2, name: 'Anexo 2' },
-    { id: 3, name: 'Anexo 3' },
-  ]
-};
+import { getRequirementById, getAnexosByRequerimentoId, getAnexoDownloadUrl } from '../services/api'; 
 
 const ViewRequirement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
-  // In a real app, you would fetch the requirement data based on the ID
+  const [requirement, setRequirement] = useState(null);
+  const [anexos, setAnexos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  const getStatusColor = () => {
-    switch(requirementData.status) {
-      case 'approved': return 'bg-green-500';
-      case 'pending': return 'bg-yellow-500';
-      case 'rejected': return 'bg-red-500';
+  useEffect(() => {
+    console.log(`Componente montado. ID do requerimento: ${id}`);
+    
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const reqData = await getRequirementById(id);
+
+        setRequirement(reqData);
+
+        const anexosData = await getAnexosByRequerimentoId(id);
+        setAnexos(anexosData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [id]);
+  
+  const handleDownloadAnexo = (anexoId, nome, extensao) => {
+    const downloadUrl = getAnexoDownloadUrl(anexoId);
+    
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `${nome}.${extensao}`; 
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  const getStatusColor = (situacao) => {
+    switch(situacao) {
+      case 'APROVADO': return 'bg-green-500';
+      case 'PENDENTE': return 'bg-yellow-500';
+      case 'REJEITADO': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
-
-  const handleApprove = () => {
-    // In a real app, you would send this action to your backend
-    console.log('Approving requirement:', id);
+  
+  const getFileIcon = (extensao) => {
+    switch(extensao.toLowerCase()) {
+      case 'pdf': return '📄';
+      case 'jpg':
+      case 'jpeg':
+      case 'png': return '🖼️';
+      case 'doc':
+      case 'docx': return '📝';
+      case 'xls':
+      case 'xlsx': return '📊';
+      default: return '📎';
+    }
+  };
+  
+  const handleApprove = async () => {
+    console.log('Aprovando requerimento:', id);
     navigate('/dashboard');
   };
-
-  const handleReject = () => {
-    // In a real app, you would send this action to your backend
-    console.log('Rejecting requirement:', id);
+  
+  const handleReject = async () => {
+    console.log('Rejeitando requerimento:', id);
     navigate('/dashboard');
   };
-
+  
   const handleGenerateReport = () => {
-    // In a real app, you would generate a report on the backend
-    console.log('Generating report for requirement:', id);
+    console.log('Gerando relatório para o requerimento:', id);
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto text-center">
+        <p>Carregando dados do requerimento...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto text-center">
+        <p className="text-red-500">Erro: {error}</p>
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Voltar para o Dashboard
+        </button>
+      </div>
+    );
+  }
+
+  if (!requirement) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto text-center">
+        <p>Requerimento não encontrado.</p>
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="mt-4 px-4 py-2 bg-primary text-white rounded-md"
+        >
+          Voltar para o Dashboard
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <div className={`${getStatusColor()} text-white px-4 py-2 rounded-md mb-6 inline-block`}>
-        Situação
+      <div className={`${getStatusColor(requirement.situacao)} text-white px-4 py-2 rounded-md mb-6 inline-block`}>
+        {requirement.situacao}
       </div>
       
       <div className="space-y-6">
@@ -59,7 +130,7 @@ const ViewRequirement = () => {
           <input
             type="text"
             className="w-full p-3 bg-gray-100 rounded-md"
-            value={requirementData.studentName}
+            value={requirement.nomeUsuario || 'N/A'}
             readOnly
           />
         </div>
@@ -69,7 +140,7 @@ const ViewRequirement = () => {
           <input
             type="text"
             className="w-full p-3 bg-gray-100 rounded-md"
-            value={requirementData.purpose}
+            value={requirement.finalidade || 'N/A'}
             readOnly
           />
         </div>
@@ -78,23 +149,39 @@ const ViewRequirement = () => {
           <label className="block text-sm font-medium mb-1">Justificativa do requerimento</label>
           <textarea
             className="w-full p-3 bg-gray-100 rounded-md min-h-[200px]"
-            value={requirementData.justification}
+            value={requirement.descricao || 'N/A'}
             readOnly
           ></textarea>
         </div>
         
         <div>
           <label className="block text-sm font-medium mb-1">Arquivos anexados</label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {requirementData.attachments.map(attachment => (
-              <div 
-                key={attachment.id}
-                className="bg-gray-100 px-4 py-2 rounded-full text-sm"
-              >
-                {attachment.name}
-              </div>
-            ))}
-          </div>
+          {anexos && anexos.length > 0 ? (
+            <div className="space-y-2 mt-2">
+              {anexos.map(anexo => (
+                <div 
+                  key={anexo.id}
+                  className="bg-gray-100 p-3 rounded-md flex justify-between items-center"
+                >
+                  <div className="flex items-center">
+                    <span className="mr-2 text-xl">{getFileIcon(anexo.extensao)}</span>
+                    <span>{anexo.nome}.{anexo.extensao}</span>
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({(anexo.tamanho / 1024).toFixed(2)} KB)
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadAnexo(anexo.id, anexo.nome, anexo.extensao)}
+                    className="bg-primary text-white px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm"
+                  >
+                    Download
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 mt-2">Nenhum anexo disponível</p>
+          )}
         </div>
         
         <div className="flex gap-4">
