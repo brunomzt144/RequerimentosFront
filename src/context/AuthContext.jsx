@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     
     return null;
   });
-  
+
   useEffect(() => {
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
@@ -42,7 +42,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    console.log("Clicou logout")
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');

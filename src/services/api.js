@@ -70,8 +70,8 @@ export const fetchRequirements = async () => {
         const errorBody = await response.text(); 
         throw new Error(`Erro ao buscar requerimentos: ${response.status} ${response.statusText} - ${errorBody}`);
       }
-  
       const data = await response.json();
+    
       return data;
     } catch (error) {
       throw error;
@@ -84,28 +84,16 @@ export const fetchRequirements = async () => {
  * @returns {Promise<Object>} 
  */
 export const getRequirementById = async (id) => {
-  console.log(`Iniciando busca do requerimento ID: ${id}`);
-  const token = getAuthToken();
-  
-  if (!token) {
-    console.log(`Iniciando busca do requerimento ID: ${id}`);
-    throw new Error('Token inválido');
-  }
-  
+
   const requestOptions = {
     method: 'GET',
     headers: getHeaders()
   };
-
-  console.log(`Headers da requisição:`, requestOptions.headers);
-  console.log(`URL da requisição: ${API_URL}/requerimentos/${id}`);
   
   const response = await fetch(`${API_URL}requerimentos/${id}`, requestOptions);
 
-  console.log(`Status da resposta: ${response.status} ${response.statusText}`);
 
   if (!response.ok) {
-    console.error(`Erro na resposta: ${errorBody}`);
     throw new Error('Erro ao buscar requerimento');
   }
   
@@ -113,104 +101,72 @@ export const getRequirementById = async (id) => {
 };
 
 /**
- * Create requerimento
- * @param {Object} requirementData
- * @returns {Promise<Object>} 
+ * Create requerimento with files
+ * @param {string} finalidade - ID of the finalidade
+ * @param {string} justificativa - Description of the request
+ * @param {File[]} files - Array of files to upload
+ * @returns {Promise<Object>} - Created requerimento
  */
-export const createRequirement = async (requirementData) => {
+export const createRequerimento = async (finalidade, justificativa, files) => {
+  
   const token = getAuthToken();
-  
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-  
-  const requestOptions = {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify(requirementData)
-  };
-  
-  const response = await fetch(`${API_URL}/requirements`, requestOptions);
-  
-  if (!response.ok) {
-    throw new Error('Failed to create requirement');
-  }
-  
-  return await response.json();
-};
 
-/**
- * Update Requerimento
- * @param {number} id 
- * @param {Object} requirementData 
- * @returns {Promise<Object>} 
- */
-export const updateRequirement = async (id, requirementData) => {
-  const token = getAuthToken();
+  const formData = new FormData();
+  formData.append('finalidade', finalidade);
+  formData.append('justificativa', justificativa);
   
-  if (!token) {
-    throw new Error('Authentication token not found');
-  }
-  
-  const requestOptions = {
-    method: 'PUT',
-    headers: getHeaders(),
-    body: JSON.stringify(requirementData)
+  if (files && files.length > 0) {
+    files.forEach((file, index) => {
+      formData.append('files', file);
+    });
+  } 
+  const headers = {
+    'Authorization': `Bearer ${token}`
   };
   
-  const response = await fetch(`${API_URL}/requirements/${id}`, requestOptions);
-  
-  if (!response.ok) {
-    throw new Error('Failed to update requirement');
+  try {
+    const response = await fetch(`${API_URL}requerimentos`, {
+      method: 'POST',
+      headers: headers,
+      body: formData
+    });
+    
+    
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Erro ao criar requerimento: ${response.status} ${response.statusText} - ${errorBody}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw error;
   }
-  
-  return await response.json();
 };
 
 
 export const getAnexosByRequerimentoId = async (requerimentoId) => {
   try {
-    console.log(`Buscando anexos para o requerimento: ${requerimentoId}`);
-    
-    // Log the full URL
     const url = `${API_URL}anexos/requerimento/${requerimentoId}`;
-    console.log(`URL completa: ${url}`);
     
-    // Make the request
     const response = await fetch(url);
-    console.log(`Resposta recebida: status ${response.status}`);
-    
-    // Check response type
+
     const contentType = response.headers.get('content-type');
-    console.log(`Tipo de conteúdo: ${contentType}`);
     
-    // If status is not ok, handle separately
     if (!response.ok) {
-      console.error(`Status de erro: ${response.status} ${response.statusText}`);
-      
-      // Try to get error text instead of parsing as JSON
-      const errorText = await response.text();
-      console.error(`Corpo da resposta: ${errorText}`);
-      
       throw new Error(`Erro ao buscar anexos: ${response.status} ${response.statusText}`);
     }
     
-    // Check if response is empty
     const text = await response.text();
     console.log(`Resposta bruta: ${text}`);
     
     if (!text || text.trim() === '') {
-      console.log('Resposta vazia recebida');
-      return []; // Return empty array instead of trying to parse empty response
+      return []; 
     }
-    
-    // Parse JSON only if we have text
+
     const data = JSON.parse(text);
-    console.log(`Anexos recebidos: ${data.length || 0}`);
     return data;
   } catch (error) {
-    console.error('Erro capturado:', error.message);
-    console.error('Stack trace:', error.stack);
     throw new Error(`Falha na requisição: ${error.message}`);
   }
 };
@@ -218,4 +174,28 @@ export const getAnexosByRequerimentoId = async (requerimentoId) => {
 
 export const getAnexoDownloadUrl = (anexoId) => {
   return `${API_URL}anexos/${anexoId}/download`;
+};
+
+/**
+ * 
+ * @returns {Promise<Array>} 
+ */
+export const fetchCursos = async () => {
+
+  const requestOptions = {
+    method: 'GET',
+  };
+
+  try {
+    const response = await fetch(`${API_URL}cursos`, requestOptions);
+    if (!response.ok) {
+      const errorBody = await response.text(); 
+      throw new Error(`Erro ao buscar cursos: ${response.status} ${response.statusText} - ${errorBody}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    throw error;
+  }
 };

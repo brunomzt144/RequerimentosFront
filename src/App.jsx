@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import NewRequirement from "./pages/NewRequirement";
 import ViewRequirement from "./pages/ViewRequirement";
 import NotFound from "./pages/NotFound";
+import EditRequirement from "./pages/EditRequirement";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -28,7 +29,6 @@ const ProtectedRoute = () => {
   return <Outlet />;
 };
 
-// Public route component (for login/register only)
 const PublicRoute = () => {
   const { user } = useAuth();
   console.log("PublicRoute render:", { user, isAuthenticated: !!user });
@@ -58,10 +58,10 @@ const App = () => {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/new-requirement" element={<NewRequirement />} />
                 <Route path="/requirement/:id" element={<ViewRequirement />} />
+                <Route path="/requirement/:id" element={<ViewRequirement />} />
+                <Route path="/edit-requirement/:id" element={<EditRequirement />} />
               </Route>
             </Route>
-            
-            {/* 404 route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

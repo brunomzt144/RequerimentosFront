@@ -23,6 +23,15 @@ const getStatusText = (status) => {
     }
 };
 
+// Function to format dates correctly, handling timezone issues
+const formatarData = (dataString) => {
+    if (!dataString) return '';
+    
+    // Parse the date parts manually to avoid timezone issues
+    const [ano, mes, dia] = dataString.split('T')[0].split('-');
+    return `${dia}/${mes}/${ano}`;
+};
+
 const Dashboard = () => {
     const [requirements, setRequirements] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -34,9 +43,11 @@ const Dashboard = () => {
         const getRequirements = async () => {
             try {
                 const data = await fetchRequirements();
+                console.log('Requerimentos recebidos:', data);
                 setRequirements(data);
                 setLoading(false);
             } catch (err) {
+                console.error('Erro ao buscar requerimentos:', err);
                 setError(err.message);
                 setLoading(false);
             }
@@ -115,14 +126,19 @@ const Dashboard = () => {
                                 <h3 className="font-semibold">{req.nomeUsuario}</h3>
                                 <p className="text-sm text-gray-600">{req.nomeCurso}</p>
                                 <p className="text-sm text-gray-600">{req.finalidade}</p>
+                                {req.dataCriacao && (
+                                    <p className="text-xs text-gray-500">
+                                        Criado em: {formatarData(req.dataCriacao)}
+                                     </p>
+                                )}
                                 {req.dataAlteracao && (
                                     <p className="text-xs text-gray-500">
-                                        Atualizado em: {new Date(req.dataAlteracao).toLocaleDateString('pt-BR')}
+                                        Atualizado em: {formatarData(req.dataAlteracao)}
                                     </p>
                                 )}
                                 {req.quantidadeAnexos > 0 && (
                                     <p className="text-xs text-gray-500">
-                                        Anexos: {req.quantidadeAnexos}
+                                        Anexos: {req.quantidadeAnexos} | ID: {req.id}
                                     </p>
                                 )}
                             </div>
@@ -139,7 +155,7 @@ const Dashboard = () => {
                                     <Link to={`/requirement/${req.id}`} className="text-gray-500 hover:text-primary">
                                         <Eye size={20} />
                                     </Link>
-                                    <Link to={`/requirement/${req.id}/edit`} className="text-gray-500 hover:text-primary">
+                                    <Link to={`/edit-requirement/${req.id}`} className="text-gray-500 hover:text-primary">
                                         <Edit size={20} />
                                     </Link>
                                 </div>

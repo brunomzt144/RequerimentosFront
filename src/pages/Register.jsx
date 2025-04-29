@@ -2,36 +2,46 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Lock, Mail, FileText } from 'lucide-react';
+import CursoComboBox from '../components/CursoComboBox';
 
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
     email: '',
-    cpf: ''
+    cpf: '',
+    cursoId: null
   });
+  
   const { register } = useAuth();
   const navigate = useNavigate();
-
+  
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
   };
-
+  
+  const handleCursoSelect = (curso) => {
+    setFormData({
+      ...formData,
+      cursoId: curso ? curso.id : null
+    });
+  };
+  
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { username, password, email, cpf } = formData;
+    const { username, password, email, cpf, cursoId } = formData;
     
-    if (username && password && email && cpf) {
+    if (username && password && email && cpf && cursoId) {
       const success = register(formData);
       if (success) {
         navigate('/');
       }
     }
   };
-
+  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
       <div className="mb-8">
@@ -99,6 +109,9 @@ const Register = () => {
               onChange={handleChange}
             />
           </div>
+          
+          {/* Add the Curso ComboBox */}
+          <CursoComboBox onSelect={handleCursoSelect} />
           
           <button 
             type="submit" 

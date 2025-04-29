@@ -8,8 +8,7 @@ const Sidebar = ({ userName = "Aluno" }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const handleLogout = () => {
-   
-    console.log("Clicou logout jsx")
+
     logout();
     navigate('/');
   };
