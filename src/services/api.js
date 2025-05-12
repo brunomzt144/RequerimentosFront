@@ -192,6 +192,55 @@ export const createRequerimento = async (finalidade, justificativa, files) => {
   }
 };
 
+/**
+ * Update an existing requerimento
+ * @param {number} id - ID of the requirement to update
+ * @param {string} finalidade - Purpose ID
+ * @param {string} justificativa - Description/justification text
+ * @param {File[]} newFiles - New files to upload
+ * @param {Object[]} existingFiles - Existing files to keep
+ * @returns {Promise<Object>}
+ */
+export const updateRequerimento = async (id, finalidade, descricao, newFiles = [], existingFiles = []) => {
+  const token = getAuthToken();
+
+  const formData = new FormData();
+  formData.append('finalidade', finalidade);
+  formData.append('justificativa', descricao);
+
+  if (existingFiles.length > 0) {
+    const existingFileIds = existingFiles.map(file => file.id).join(',');
+    formData.append('manterAnexos', existingFileIds);
+  }
+  
+  
+  if (newFiles.length > 0) {
+    newFiles.forEach((file) => {
+      formData.append('files', file);
+    });
+  }
+  
+  const headers = {
+    'Authorization': `Bearer ${token}`
+  };
+  
+  try {
+    const response = await fetch(`${API_URL}requerimentos/${id}`, {
+      method: 'PUT',
+      headers: headers,
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Erro ao atualizar requerimento: ${response.status} ${response.statusText} - ${errorBody}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    throw error;
+  }
+};
 
 
 /** Get anexo de um requerimento **/

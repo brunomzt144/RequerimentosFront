@@ -10,6 +10,7 @@ import NewRequirement from "./pages/NewRequirement";
 import ViewRequirement from "./pages/ViewRequirement";
 import NotFound from "./pages/NotFound";
 import EditRequirement from "./pages/EditRequirement";
+import EditRequirementDiscente from "./pages/EditRequirementDiscente";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -60,6 +61,7 @@ const App = () => {
                 <Route path="/requirement/:id" element={<ViewRequirement />} />
                 <Route path="/requirement/:id" element={<ViewRequirement />} />
                 <Route path="/edit-requirement/:id" element={<EditRequirement />} />
+                <Route path="/edit-requirement-discente/:id" element={<EditRequirementDiscente />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />

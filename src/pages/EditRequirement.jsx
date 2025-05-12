@@ -18,7 +18,6 @@ const EditRequirement = () => {
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -37,16 +36,7 @@ const EditRequirement = () => {
     fetchData();
   }, [id]);
   
-  const handleDownloadAnexo = (anexoId, nome, extensao) => {
-    const downloadUrl = getAnexoDownloadUrl(anexoId);
-    
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `${nome}.${extensao}`; 
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+
   
   const getStatusColor = (situacao) => {
     switch(situacao) {
@@ -94,6 +84,7 @@ const EditRequirement = () => {
   };
   
   const handleGenerateReport = () => {
+    // Future implementation
   };
 
   if (loading) {
@@ -179,22 +170,24 @@ const EditRequirement = () => {
                 >
                   <div className="flex items-center">
                     <span className="mr-2 text-xl">{getFileIcon(anexo.extensao)}</span>
-                    <span>{anexo.nome}.{anexo.extensao}</span>
+                    <span>{anexo.nome}</span>
                     <span className="ml-2 text-xs text-gray-500">
                       ({(anexo.tamanho / 1024).toFixed(2)} KB)
                     </span>
+                    <a 
+                      href={getAnexoDownloadUrl(anexo.id)} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="ml-2 text-blue-500 text-xs hover:underline"
+                    >
+                      Download
+                    </a>
                   </div>
-                  <button
-                    onClick={() => handleDownloadAnexo(anexo.id, anexo.nome, anexo.extensao)}
-                    className="bg-primary text-white px-3 py-1 rounded-md hover:bg-primary/90 transition-colors text-sm"
-                  >
-                    Download
-                  </button>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 mt-2">Nenhum anexo</p>
+            <p className="text-sm text-gray-500 mt-2">Nenhum anexo disponível</p>
           )}
         </div>
         
