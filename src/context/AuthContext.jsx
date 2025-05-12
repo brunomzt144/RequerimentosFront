@@ -1,6 +1,4 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-
-// Set this to true to bypass authentication checks for testing
 const BYPASS_AUTH_FOR_TESTING = false;
 
 const AuthContext = createContext();
@@ -48,7 +46,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = (userData) => {
-    console.log('Registering user:', userData);
     return true;
   };
 

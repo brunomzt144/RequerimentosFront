@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRequirementById, getAnexosByRequerimentoId, getAnexoDownloadUrl } from '../services/api'; 
+import { 
+  getRequirementById, 
+  getAnexosByRequerimentoId, 
+  getAnexoDownloadUrl,
+  updateRequirementStatus 
+} from '../services/api'; 
 
 const EditRequirement = () => {
   const { id } = useParams();
@@ -9,16 +14,15 @@ const EditRequirement = () => {
   const [requirement, setRequirement] = useState(null);
   const [anexos, setAnexos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    console.log(`Componente montado. ID do requerimento: ${id}`);
     
     const fetchData = async () => {
       try {
         setLoading(true);
         const reqData = await getRequirementById(id);
-
         setRequirement(reqData);
 
         const anexosData = await getAnexosByRequerimentoId(id);
@@ -35,7 +39,6 @@ const EditRequirement = () => {
   
   const handleDownloadAnexo = (anexoId, nome, extensao) => {
     const downloadUrl = getAnexoDownloadUrl(anexoId);
-    
     
     const link = document.createElement('a');
     link.href = downloadUrl;
@@ -69,17 +72,28 @@ const EditRequirement = () => {
   };
   
   const handleApprove = async () => {
-    console.log('Aprovando requerimento:', id);
-    navigate('/dashboard');
+    try {
+      setUpdating(true);
+      await updateRequirementStatus(id, 'D'); // 'D' Deferido
+      navigate('/dashboard');
+    } catch (err) {
+      setError(`Erro ao aprovar requerimento: ${err.message}`);
+      setUpdating(false);
+    }
   };
   
   const handleReject = async () => {
-    console.log('Rejeitando requerimento:', id);
-    navigate('/dashboard');
+    try {
+      setUpdating(true);
+      await updateRequirementStatus(id, 'I'); // 'I' Indeferido
+      navigate('/dashboard');
+    } catch (err) {
+      setError(`Erro ao rejeitar requerimento: ${err.message}`);
+      setUpdating(false);
+    }
   };
   
   const handleGenerateReport = () => {
-    console.log('Gerando relatório para o requerimento:', id);
   };
 
   if (loading) {
@@ -130,7 +144,7 @@ const EditRequirement = () => {
           <input
             type="text"
             className="w-full p-3 bg-gray-100 rounded-md"
-            value={requirement.nomeUsuario || 'N/A'}
+            value={requirement.nomeUsuario || 'Vazio'}
             readOnly
           />
         </div>
@@ -140,7 +154,7 @@ const EditRequirement = () => {
           <input
             type="text"
             className="w-full p-3 bg-gray-100 rounded-md"
-            value={requirement.finalidade || 'N/A'}
+            value={requirement.finalidade || 'Vazio'}
             readOnly
           />
         </div>
@@ -149,7 +163,7 @@ const EditRequirement = () => {
           <label className="block text-sm font-medium mb-1">Justificativa do requerimento</label>
           <textarea
             className="w-full p-3 bg-gray-100 rounded-md min-h-[200px]"
-            value={requirement.descricao || 'N/A'}
+            value={requirement.descricao || 'Vazio'}
             readOnly
           ></textarea>
         </div>
@@ -180,28 +194,31 @@ const EditRequirement = () => {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-500 mt-2">Nenhum anexo disponível</p>
+            <p className="text-sm text-gray-500 mt-2">Nenhum anexo</p>
           )}
         </div>
         
         <div className="flex gap-4">
           <button
             onClick={handleApprove}
-            className="flex-1 py-3 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+            disabled={updating}
+            className={`flex-1 py-3 ${updating ? 'bg-gray-300' : 'bg-primary hover:bg-primary/90'} text-white rounded-md transition-colors`}
           >
-            Deferir
+            {updating ? 'Processando...' : 'Deferir'}
           </button>
           
           <button
             onClick={handleReject}
-            className="flex-1 py-3 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+            disabled={updating}
+            className={`flex-1 py-3 ${updating ? 'bg-gray-300' : 'bg-red-500 hover:bg-red-600'} text-white rounded-md transition-colors`}
           >
-            Rejeitar
+            {updating ? 'Processando...' : 'Rejeitar'}
           </button>
         </div>
         
         <button
           onClick={handleGenerateReport}
+          disabled={updating}
           className="w-full py-3 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
         >
           Gerar relatório

@@ -14,15 +14,57 @@ const getAuthToken = () => {
  */
 const getHeaders = () => {
   const token = getAuthToken();
-  
+
   return {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
-      };
+  };
 };
 
+
 /**
- * Create requerimento
+ * Login user and get authentication token
+ * @param {string} username - User's login
+ * @param {string} password - User's password
+ * @returns {Promise<Object>} - User data and token
+ */
+export const loginUsuario = async (username, password) => {
+  const requestOptions = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      login: username,
+      password: password
+    })
+  };
+
+  try {
+    const response = await fetch(`${API_URL}auth/login`, requestOptions);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Erro: ${errorText || response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      token: data.token,
+      user: {
+        name: username,
+        role: data.role || 'USER' 
+      }
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+/**
+ * Busca finalidade
  * @returns {Promise<Object>} 
  */
 export const fetchFinalidade = async () => {
@@ -39,7 +81,7 @@ export const fetchFinalidade = async () => {
   try {
     const response = await fetch(`${API_URL}finalidade`, requestOptions);
     if (!response.ok) {
-      const errorBody = await response.text(); 
+      const errorBody = await response.text();
       throw new Error(`Erro ao buscar finalidades: ${response.status} ${response.statusText} - ${errorBody}`);
     }
 
@@ -50,33 +92,39 @@ export const fetchFinalidade = async () => {
   }
 
 }
+
+
+
 /**
  * Pega requerimentos
  * @returns {Promise<Array>} 
  */
 export const fetchRequirements = async () => {
-    const token = getAuthToken();
-    if (!token) {
-      throw new Error('Token inválido');
-    }
-  
-    const requestOptions = {
-      method: 'GET',
-      headers: getHeaders()
-    };
-    try {
-      const response = await fetch(`${API_URL}requerimentos`, requestOptions);
-      if (!response.ok) {
-        const errorBody = await response.text(); 
-        throw new Error(`Erro ao buscar requerimentos: ${response.status} ${response.statusText} - ${errorBody}`);
-      }
-      const data = await response.json();
-    
-      return data;
-    } catch (error) {
-      throw error;
-    }
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Token inválido');
+  }
+
+  const requestOptions = {
+    method: 'GET',
+    headers: getHeaders()
   };
+  try {
+    const response = await fetch(`${API_URL}requerimentos`, requestOptions);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Erro ao buscar requerimentos: ${response.status} ${response.statusText} - ${errorBody}`);
+    }
+    const data = await response.json();
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
 
 /**
  * Get requiremento por ID
@@ -89,14 +137,14 @@ export const getRequirementById = async (id) => {
     method: 'GET',
     headers: getHeaders()
   };
-  
+
   const response = await fetch(`${API_URL}requerimentos/${id}`, requestOptions);
 
 
   if (!response.ok) {
     throw new Error('Erro ao buscar requerimento');
   }
-  
+
   return await response.json();
 };
 
@@ -108,35 +156,35 @@ export const getRequirementById = async (id) => {
  * @returns {Promise<Object>} - Created requerimento
  */
 export const createRequerimento = async (finalidade, justificativa, files) => {
-  
+
   const token = getAuthToken();
 
   const formData = new FormData();
   formData.append('finalidade', finalidade);
   formData.append('justificativa', justificativa);
-  
+
   if (files && files.length > 0) {
     files.forEach((file, index) => {
       formData.append('files', file);
     });
-  } 
+  }
   const headers = {
     'Authorization': `Bearer ${token}`
   };
-  
+
   try {
     const response = await fetch(`${API_URL}requerimentos`, {
       method: 'POST',
       headers: headers,
       body: formData
     });
-    
-    
+
+
     if (!response.ok) {
       const errorBody = await response.text();
       throw new Error(`Erro ao criar requerimento: ${response.status} ${response.statusText} - ${errorBody}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -145,23 +193,25 @@ export const createRequerimento = async (finalidade, justificativa, files) => {
 };
 
 
+
+/** Get anexo de um requerimento **/
 export const getAnexosByRequerimentoId = async (requerimentoId) => {
   try {
     const url = `${API_URL}anexos/requerimento/${requerimentoId}`;
-    
+
     const response = await fetch(url);
 
     const contentType = response.headers.get('content-type');
-    
+
     if (!response.ok) {
       throw new Error(`Erro ao buscar anexos: ${response.status} ${response.statusText}`);
     }
-    
+
     const text = await response.text();
     console.log(`Resposta bruta: ${text}`);
-    
+
     if (!text || text.trim() === '') {
-      return []; 
+      return [];
     }
 
     const data = JSON.parse(text);
@@ -176,6 +226,9 @@ export const getAnexoDownloadUrl = (anexoId) => {
   return `${API_URL}anexos/${anexoId}/download`;
 };
 
+
+
+
 /**
  * 
  * @returns {Promise<Array>} 
@@ -189,12 +242,39 @@ export const fetchCursos = async () => {
   try {
     const response = await fetch(`${API_URL}cursos`, requestOptions);
     if (!response.ok) {
-      const errorBody = await response.text(); 
+      const errorBody = await response.text();
       throw new Error(`Erro ao buscar cursos: ${response.status} ${response.statusText} - ${errorBody}`);
     }
 
     const data = await response.json();
     return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+/**
+ * Update requirement status
+ * @param {number} id - Requirement ID
+ * @param {string} situacao - New status ('D' for approve, 'I' for reject)
+ * @returns {Promise<Object>} - Updated requirement
+ */
+export const updateRequirementStatus = async (id, situacao) => {
+  const requestOptions = {
+    method: 'PUT',
+    headers: getHeaders()
+  };
+
+  try {
+    const response = await fetch(`${API_URL}requerimentos/${id}/situacao?situacao=${situacao}`, requestOptions);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Erro ao atualizar situação: ${response.status} ${response.statusText} - ${errorBody}`);
+    }
+
+    return await response.json();
   } catch (error) {
     throw error;
   }

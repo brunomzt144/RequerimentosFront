@@ -5,31 +5,29 @@ import { fetchRequirements } from '../services/api';
 
 const getStatusColor = (status) => {
     switch(status) {
-        case 'APROVADO': return 'bg-green-500';
-        case 'PENDENTE':
-        case 'VAZIO': return 'bg-yellow-500';
-        case 'REJEITADO': return 'bg-red-500';
+        case 'DEFERIDO': return 'bg-green-500';
+        case 'PENDENTE':return 'bg-yellow-500';
+        case 'INDEFERIDO': return 'bg-red-500';
         default: return 'bg-gray-500';
     }
 };
 
 const getStatusText = (status) => {
     switch(status) {
-        case 'APROVADO': return 'Aprovado';
+        case 'DEFERIDO': return 'Deferido';
         case 'PENDENTE': return 'Pendente';
-        case 'REJEITADO': return 'Rejeitado';
-        case 'VAZIO': return 'Não avaliado';
+        case 'INDEFERIDO': return 'Indeferido';
         default: return 'Situação';
     }
 };
 
-// Function to format dates correctly, handling timezone issues
 const formatarData = (dataString) => {
+
     if (!dataString) return '';
-    
-    // Parse the date parts manually to avoid timezone issues
+
     const [ano, mes, dia] = dataString.split('T')[0].split('-');
     return `${dia}/${mes}/${ano}`;
+
 };
 
 const Dashboard = () => {
@@ -43,11 +41,9 @@ const Dashboard = () => {
         const getRequirements = async () => {
             try {
                 const data = await fetchRequirements();
-                console.log('Requerimentos recebidos:', data);
                 setRequirements(data);
                 setLoading(false);
             } catch (err) {
-                console.error('Erro ao buscar requerimentos:', err);
                 setError(err.message);
                 setLoading(false);
             }
@@ -103,10 +99,9 @@ const Dashboard = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <option value="">Todas as situações</option>
-                        <option value="APROVADO">Aprovado</option>
+                        <option value="DEFERIDO">Deferido</option>
                         <option value="PENDENTE">Pendente</option>
-                        <option value="REJEITADO">Rejeitado</option>
-                        <option value="VAZIO">Não avaliado</option>
+                        <option value="INDEFERIDO">Indeferido</option>
                     </select>
                 </div>
             </div>

@@ -12,8 +12,6 @@ const ViewRequirement = () => {
   const [error, setError] = useState(null);
   
   useEffect(() => {
-    console.log(`Componente montado. ID do requerimento: ${id}`);
-    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -36,20 +34,21 @@ const ViewRequirement = () => {
   const handleDownloadAnexo = (anexoId, nome, extensao) => {
     const downloadUrl = getAnexoDownloadUrl(anexoId);
     
-    
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = `${nome}.${extensao}`; 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+
   };
   
   const getStatusColor = (situacao) => {
     switch(situacao) {
-      case 'APROVADO': return 'bg-green-500';
+      case 'DEFERIDO': return 'bg-green-500';
       case 'PENDENTE': return 'bg-yellow-500';
-      case 'REJEITADO': return 'bg-red-500';
+      case 'INDEFERIDO': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -69,17 +68,14 @@ const ViewRequirement = () => {
   };
   
   const handleApprove = async () => {
-    console.log('Aprovando requerimento:', id);
     navigate('/dashboard');
   };
   
   const handleReject = async () => {
-    console.log('Rejeitando requerimento:', id);
     navigate('/dashboard');
   };
   
   const handleGenerateReport = () => {
-    console.log('Gerando relatório para o requerimento:', id);
   };
 
   if (loading) {
@@ -120,7 +116,7 @@ const ViewRequirement = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <div className={`${getStatusColor(requirement.situacao)} text-white px-4 py-2 rounded-md mb-6 inline-block`}>
+      <div className={`${getStatusColor(requirement.situacao.toLowerCase())} text-white px-4 py-2 rounded-md mb-6 inline-block`}>
         {requirement.situacao}
       </div>
       
@@ -131,7 +127,8 @@ const ViewRequirement = () => {
             type="text"
             className="w-full p-3 bg-gray-100 rounded-md"
             value={requirement.nomeUsuario || 'N/A'}
-            readOnly
+            readOnly={true}
+            disabled={true}
           />
         </div>
         
@@ -141,7 +138,8 @@ const ViewRequirement = () => {
             type="text"
             className="w-full p-3 bg-gray-100 rounded-md"
             value={requirement.finalidade || 'N/A'}
-            readOnly
+            readOnly={true}
+            disabled={true}
           />
         </div>
         
@@ -150,7 +148,8 @@ const ViewRequirement = () => {
           <textarea
             className="w-full p-3 bg-gray-100 rounded-md min-h-[200px]"
             value={requirement.descricao || 'N/A'}
-            readOnly
+            readOnly={true}
+            disabled={true}
           ></textarea>
         </div>
         
