@@ -1,4 +1,3 @@
-console.log("App.jsx is being loaded");
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -8,38 +7,31 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import NewRequirement from "./pages/NewRequirement";
 import ViewRequirement from "./pages/ViewRequirement";
-import NotFound from "./pages/NotFound";
 import EditRequirement from "./pages/EditRequirement";
 import EditRequirementDiscente from "./pages/EditRequirementDiscente";
+import NotFound from "./pages/NotFound";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const queryClient = new QueryClient();
 
-
 const ProtectedRoute = () => {
   const { user } = useAuth();
-  console.log("ProtectedRoute render:", { user, isAuthenticated: !!user });
   
   if (!user) {
-    console.log("ProtectedRoute redirecting to login");
     return <Navigate to="/" replace />;
   }
   
-  console.log("ProtectedRoute rendering content");
   return <Outlet />;
 };
 
 const PublicRoute = () => {
   const { user } = useAuth();
-  console.log("PublicRoute render:", { user, isAuthenticated: !!user });
   
   if (user) {
-    console.log("PublicRoute redirecting to dashboard");
     return <Navigate to="/dashboard" replace />;
   }
   
-  console.log("PublicRoute rendering login/register");
   return <Outlet />;
 };
 
@@ -54,16 +46,19 @@ const App = () => {
               <Route path="/" element={<Login />} />
               <Route path="/register" element={<Register />} />
             </Route>
+            
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/new-requirement" element={<NewRequirement />} />
                 <Route path="/requirement/:id" element={<ViewRequirement />} />
-                <Route path="/requirement/:id" element={<ViewRequirement />} />
+                
+                {/* Both edit routes are accessible but the Dashboard decides which one to use */}
                 <Route path="/edit-requirement/:id" element={<EditRequirement />} />
                 <Route path="/edit-requirement-discente/:id" element={<EditRequirementDiscente />} />
               </Route>
             </Route>
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

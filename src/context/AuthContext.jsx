@@ -1,17 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-const BYPASS_AUTH_FOR_TESTING = false;
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    if (BYPASS_AUTH_FOR_TESTING) {
-      return { name: "Test User" };
-    }
-    
     const storedUser = localStorage.getItem('user');
     const storedToken = localStorage.getItem('authToken');
-    
+   
     if (storedUser && storedToken) {
       try {
         return JSON.parse(storedUser);
@@ -19,7 +14,7 @@ export const AuthProvider = ({ children }) => {
         return null;
       }
     }
-    
+   
     return null;
   });
 
@@ -32,7 +27,9 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   const login = (userData, token) => {
+    // Store the user data with role information
     setUser(userData);
+    
     if (token) {
       localStorage.setItem('authToken', token);
     }
